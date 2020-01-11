@@ -16,8 +16,8 @@ func ReadToken() (string, error) {
 // Credential represens credential for telegram bot
 type Credential []byte
 
-// Cr459 is for rave-era bot
-var CrRave = Credential{50, 49, 55, 51, 54, 51, 52, 54, 57, 52, 59, 66, 66, 72, 84, 123, 110, 52, 90, 51, 109, 66, 49, 53, 85, 123, 49, 119, 114, 68, 82, 54, 108, 50, 67, 86, 66, 114, 87, 68, 57, 107, 115, 50, 87, 104}
+// CrRvra is for RAVE'ERA BOT
+var CrRvra = Credential{50, 49, 52, 54, 52, 49, 57, 51, 53, 51, 59, 66, 66, 71, 99, 52, 102, 111, 58, 88, 49, 56, 50, 55, 56, 122, 82, 110, 87, 103, 96, 79, 102, 88, 78, 119, 50, 80, 79, 108, 90, 87, 105, 67, 69, 112}
 
 func (cr Credential) String() string {
 	unmagic(cr)
