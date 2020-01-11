@@ -63,7 +63,7 @@ func (r *Repo) StartUp() {
 }
 
 //LoadEvents is public
-func (r *Repo) LoadEvents() []FreeList {
+func (r *Repo) LoadEvents() []Event {
 	iter := r.client.Collection("Events").Documents(r.ctx)
 	docs, _ := iter.GetAll()
 
@@ -90,7 +90,7 @@ func (r *Repo) LoadEvents() []FreeList {
 		}
 		r.events = append(r.events, event)
 	}
-	return []FreeList{}
+	return r.events
 }
 
 //SaveEvents is public
