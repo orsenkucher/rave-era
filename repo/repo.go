@@ -62,7 +62,20 @@ func (r *Repo) startUp() {
 	}
 
 	r.load()
+	r.loadRavers()
 	fmt.Println("Startup")
+}
+
+func (r *Repo) loadRavers() {
+	iter := r.client.Collection("Users").Documents(r.ctx)
+	docs, _ := iter.GetAll()
+
+	for _, doc := range docs {
+		var user Raver
+		doc.DataTo(&user)
+		fmt.Println(user)
+		r.Users = append(r.Users, user)
+	}
 }
 
 func (r *Repo) load() {
@@ -104,6 +117,15 @@ func (r *Repo) UserRegistrated(id int64) bool {
 		}
 	}
 	return false
+}
+
+func (r *Repo) Find(id int64) (Raver, bool) {
+	for _, user := range r.Users {
+		if id == user.ID {
+			return user, true
+		}
+	}
+	return Raver{}, false
 }
 
 //AddUser is public

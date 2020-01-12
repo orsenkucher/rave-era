@@ -12,12 +12,26 @@ import (
 
 // Item represens context of work
 type Item struct {
-	DestID int64 // Item destination
-	OnMsg  func(text string)
+	DestID  int64  // Item destination
+	CallID  string // Callback
+	Payload string
+	OnMsg   func(text string)
 }
 
 func (b *Bot) handleCallback(update tgbotapi.Update) {
 	fmt.Println("Callback:", update)
+	data := update.CallbackQuery.Data
+	destID := update.CallbackQuery.Message.Chat.ID
+	callID := update.CallbackQuery.ID
+	payload := strings.Split(data, ":")[1]
+	switch {
+	case strings.Contains(data, "free"):
+		b.onFree(Item{
+			DestID:  destID,
+			CallID:  callID,
+			Payload: payload,
+		})
+	}
 }
 
 func (b *Bot) handleMessage(update tgbotapi.Update) {
@@ -41,6 +55,26 @@ func (b *Bot) handleCommand(update tgbotapi.Update) {
 		b.onRave(it)
 	default:
 		return
+	}
+}
+
+func (b *Bot) onFree(it Item) {
+	fmt.Println("FREE")
+	// raver := repo.Raver{ID: it.DestID}
+	raver, ok := b.repo.Find(it.DestID)
+	if !ok {
+		log.Println("Error: User not found in repo")
+	}
+	friends := []repo.Raver{}
+	b.repo.Subscribe(raver, friends, it.Payload)
+	snackMsg := fmt.Sprintf("🔥%s: %s+%v", it.Payload, raver.Name, len(friends))
+	_, err := b.api.AnswerCallbackQuery(tgbotapi.NewCallback(it.CallID, snackMsg))
+	if err != nil {
+		log.Println(err)
+	}
+	msg := tgbotapi.NewMessage(it.DestID, snackMsg)
+	if _, err := b.api.Send(msg); err != nil {
+		log.Println(err)
 	}
 }
 

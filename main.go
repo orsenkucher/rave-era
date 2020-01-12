@@ -10,6 +10,7 @@ import (
 
 func main() {
 	r := repo.NewRepo()
+	fmt.Println(r.Users)
 	// raver := repo.Raver{Name: "Srgey",
 	// 	LastName: "Cheremshinsky",
 	// 	ID:       0,
