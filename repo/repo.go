@@ -37,17 +37,18 @@ type Event struct {
 type Repo struct {
 	client *firestore.Client
 	ctx    context.Context
-	events []Event
+	Events []Event
+	Users  []Raver
 }
 
+//NewRepo is public
 func NewRepo() *Repo {
 	r := &Repo{}
-	r.StartUp()
+	r.startUp()
 	return r
 }
 
-//StartUp starts server
-func (r *Repo) StartUp() {
+func (r *Repo) startUp() {
 	r.ctx = context.Background()
 	sa := option.WithCredentialsFile("creds.json")
 	app, err := firebase.NewApp(r.ctx, nil, sa)
@@ -59,11 +60,12 @@ func (r *Repo) StartUp() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	r.load()
 	fmt.Println("Startup")
 }
 
-//LoadEvents is public
-func (r *Repo) LoadEvents() []Event {
+func (r *Repo) load() {
 	iter := r.client.Collection("Events").Documents(r.ctx)
 	docs, _ := iter.GetAll()
 
@@ -73,7 +75,9 @@ func (r *Repo) LoadEvents() []Event {
 			Name string `firebase:"name"`
 		}{}
 		doc.DataTo(&ev)
+		fmt.Println(ev)
 		event := Event{N: ev.N, Name: ev.Name}
+		event.Free.Ravers = make(map[Raver][]Raver)
 		iter := doc.Ref.Collection("Free").Documents(r.ctx)
 		docs, _ := iter.GetAll()
 		for _, doc := range docs {
@@ -88,14 +92,43 @@ func (r *Repo) LoadEvents() []Event {
 				event.Free.Ravers[raver] = append(event.Free.Ravers[raver], friend)
 			}
 		}
-		r.events = append(r.events, event)
+		r.Events = append(r.Events, event)
 	}
-	return r.events
 }
 
-//SaveEvents is public
-func (r *Repo) SaveEvents() {
-	for _, event := range r.events {
+//UserRegistrated UserRegistrated
+func (r *Repo) UserRegistrated(id int64) bool {
+	for _, user := range r.Users {
+		if id == user.ID {
+			return true
+		}
+	}
+	return false
+}
+
+//AddUser is public
+func (r *Repo) AddUser(user Raver) {
+	r.Users = append(r.Users, user)
+	r.client.Doc("Users/"+strconv.FormatInt(user.ID, 10)).Set(r.ctx, user)
+}
+
+//Subscribe Subscribe
+func (r *Repo) Subscribe(user Raver, friends []Raver, eventName string) {
+	for _, ev := range r.Events {
+		if ev.Name == eventName {
+			ev.Free.Ravers[user] = friends
+			r.client.Doc("Events/"+ev.Name+"/Free/"+strconv.FormatInt(user.ID, 10)).Set(r.ctx, user)
+			fmt.Print("Events/" + ev.Name + "/Free/" + strconv.FormatInt(user.ID, 10))
+			for _, friend := range friends {
+				r.client.Doc("Events/"+ev.Name+"/Free/"+strconv.FormatInt(user.ID, 10)+"/Friends/"+strconv.FormatInt(friend.ID, 10)).Set(r.ctx, friend)
+			}
+		}
+	}
+}
+
+//Save is public
+func (r *Repo) Save() {
+	for _, event := range r.Events {
 		ev := struct {
 			N    int    `firebase:"n"`
 			Name string `firebase:"name"`
@@ -115,7 +148,7 @@ func (r *Repo) SaveEvents() {
 
 //ShowStatus is public
 func (r *Repo) ShowStatus() {
-	for _, event := range r.events {
+	for _, event := range r.Events {
 		fmt.Print(event.Name)
 		fmt.Print()
 	}
