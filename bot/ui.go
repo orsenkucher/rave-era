@@ -10,8 +10,8 @@ import (
 func genFreeList(list []repo.Event) (tgbotapi.InlineKeyboardMarkup, bool) {
 	buttons := make([]tgbotapi.InlineKeyboardButton, len(list))
 	for i, e := range list {
-		icon := "📂"
-		buttons[i] = tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf(" %s %s  ", icon, e.Name), "free:")
+		icon := "🗽"
+		buttons[i] = tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf(" %s %s  ", icon, e.Name), "free:"+e.Name)
 	}
 
 	var rows [][]tgbotapi.InlineKeyboardButton

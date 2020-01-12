@@ -12,10 +12,15 @@ type Bot struct {
 	cred creds.Credential
 	repo *repo.Repo
 	api  *tgbotapi.BotAPI
+	jobs map[int64]*Item
 }
 
 func NewBot(cred creds.Credential, repo *repo.Repo) *Bot {
-	b := &Bot{cred: cred, repo: repo}
+	b := &Bot{
+		cred: cred,
+		repo: repo,
+		jobs: make(map[int64]*Item),
+	}
 	b.initAPI()
 	return b
 }
